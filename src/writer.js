@@ -33,6 +33,21 @@ import { FIREBASE_SERVICE_ACCOUNT_JSON, FIREBASE_DATABASE_ID } from './config.js
 
 let _db = null;
 
+function normalizePrivateKey(key) {
+  if (!key) return key;
+  let str = String(key).replace(/\\n/g, '\n').replace(/\r/g, '');
+  const header = '-----BEGIN PRIVATE KEY-----';
+  const footer = '-----END PRIVATE KEY-----';
+  if (str.includes(header) && str.includes(footer)) {
+    const body = str
+      .substring(str.indexOf(header) + header.length, str.indexOf(footer))
+      .replace(/\s+/g, '');
+    const lines = body.match(/.{1,64}/g) || [];
+    return header + '\n' + lines.join('\n') + '\n' + footer + '\n';
+  }
+  return str;
+}
+
 function getDb() {
   if (_db) return _db;
 
@@ -41,7 +56,7 @@ function getDb() {
     try {
       serviceAccount = JSON.parse(FIREBASE_SERVICE_ACCOUNT_JSON);
       if (serviceAccount.private_key) {
-        serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, '\n');
+        serviceAccount.private_key = normalizePrivateKey(serviceAccount.private_key);
       }
     } catch (err) {
       throw new Error(
