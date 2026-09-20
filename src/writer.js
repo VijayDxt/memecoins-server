@@ -40,6 +40,9 @@ function getDb() {
     let serviceAccount;
     try {
       serviceAccount = JSON.parse(FIREBASE_SERVICE_ACCOUNT_JSON);
+      if (serviceAccount.private_key) {
+        serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, '\n');
+      }
     } catch (err) {
       throw new Error(
         `[writer] Failed to parse FIREBASE_SERVICE_ACCOUNT_JSON. ` +
